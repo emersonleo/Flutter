@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/item.dart';
 
 void main() => runApp(MyApp());
@@ -11,7 +13,7 @@ class MyApp extends StatelessWidget {
       title: 'Todo APP',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: Colors.green,
       ),
       home: new HomePage(),
     );
@@ -23,9 +25,6 @@ class HomePage extends StatefulWidget {
 
   HomePage() {
     items = [];
-    items.add(Item(title: "Item 1", done: false));
-    items.add(Item(title: "Item 2", done: true));
-    items.add(Item(title: "Item 3", done: false));
   }
   @override
   _HomePageState createState() => _HomePageState();
@@ -39,9 +38,42 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     setState(() {
-      widget.items.add(Item(title: taskController.text, done: false));
+      widget.items.add(Item(
+        title: taskController.text,
+        done: false,
+      ));
       taskController.clear();
+      save();
     });
+  }
+
+  void remove(int index) {
+    setState(() {
+      widget.items.removeAt(index);
+      save();
+    });
+  }
+
+  Future load() async {
+    var prefs = await SharedPreferences.getInstance();
+    var data = prefs.getString('data');
+
+    if (data != null) {
+      Iterable decoded = jsonDecode(data);
+      List<Item> result = decoded.map((x) => Item.fromJson(x)).toList();
+      setState(() {
+        widget.items = result;
+      });
+    }
+  }
+
+  Future save() async {
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString('data', jsonEncode(widget.items));
+  }
+
+  __HomePage() {
+    load();
   }
 
   @override
@@ -64,14 +96,21 @@ class _HomePageState extends State<HomePage> {
           itemCount: widget.items.length,
           itemBuilder: (BuildContext context, int index) {
             final item = widget.items[index];
-            return CheckboxListTile(
-              title: Text(item.title),
+            return Dismissible(
+              background: Container(color: Colors.red),
+              child: CheckboxListTile(
+                title: Text(item.title),
+                value: item.done,
+                onChanged: (bool value) {
+                  setState(() {
+                    item.done = value;
+                    save();
+                  });
+                },
+              ),
               key: Key(item.title),
-              value: item.done,
-              onChanged: (bool value) {
-                setState(() {
-                  item.done = value;
-                });
+              onDismissed: (direction) {
+                remove(index);
               },
             );
           }),
