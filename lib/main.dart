@@ -79,41 +79,53 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: TextFormField(
-        controller: taskController,
-        keyboardType: TextInputType.text,
-        style: TextStyle(
-          color: Colors.white,
-          fontFamily: "Montserrat",
-        ),
-        decoration: InputDecoration(
-          labelText: "Nova Tarefa",
-          labelStyle: TextStyle(color: Colors.white),
-        ),
-      )),
-      body: ListView.builder(
-          itemCount: widget.items.length,
-          itemBuilder: (BuildContext context, int index) {
-            final item = widget.items[index];
-            return Dismissible(
-              background: Container(color: Colors.red),
-              child: CheckboxListTile(
-                title: Text(item.title),
-                value: item.done,
-                onChanged: (bool value) {
-                  setState(() {
-                    item.done = value;
-                    save();
-                  });
-                },
+      appBar: AppBar(title: Text("Lista de Tarefas")),
+      body: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Container(
+            width: 250.0,
+            height: 50.0,
+            decoration: new BoxDecoration(
+              backgroundBlendMode: BlendMode.colorBurn,
+              borderRadius: new BorderRadius.circular(20.0),
+              color: Colors.blueGrey,
+            ),
+            child: TextFormField(
+              controller: taskController,
+              keyboardType: TextInputType.text,
+              style: TextStyle(
+                color: Colors.white,
+                fontFamily: "Montserrat",
               ),
-              key: Key(item.title),
-              onDismissed: (direction) {
-                remove(index);
-              },
-            );
-          }),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+                itemCount: widget.items.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final item = widget.items[index];
+                  return Dismissible(
+                    background: Container(color: Colors.red),
+                    child: CheckboxListTile(
+                      title: Text(item.title),
+                      value: item.done,
+                      onChanged: (bool value) {
+                        setState(() {
+                          item.done = value;
+                          save();
+                        });
+                      },
+                    ),
+                    key: Key(item.title),
+                    onDismissed: (direction) {
+                      remove(index);
+                    },
+                  );
+                }),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: add,
         child: Icon(Icons.add),
